@@ -2,6 +2,7 @@
 #include "error.h"
 
 // routine to create a heapfile
+// Harrison
 const Status createHeapFile(const string fileName)
 {
     File* 		file;
@@ -21,18 +22,48 @@ const Status createHeapFile(const string fileName)
         if (status != OK)
             return status;
         
+        // now that we have the file, open it TODO do we need to do this? I think so, bc otherwise we wouldn't be able to call allocPage?
+        status = db.openFile(fileName, file);
+        if (status != OK)
+            return status;
+        
+        // allocate an empty header page
+        Page* hdrPageUncasted;
+        status = bufMgr->allocPage(file, hdrPageNo, hdrPageUncasted);
+        if (status != OK)
+            return status;
+        hdrPage = (FileHdrPage *) hdrPageUncasted;
+
+        // Initialize the header page values
+        strcpy(hdrPage->fileName, fileName.c_str()); // TODO might be a better way to do this (I'm used to C)
+        hdrPage->pageCnt = 1;
+        hdrPage->recCnt = 0;
+        hdrPage->firstPage = -1;
+        hdrPage->lastPage = -1;
 		
+		// allocate the first data page of the heapfile
+        status = bufMgr->allocPage(file, newPageNo, newPage);
+		if (status != OK)
+            return status;
+
+		// initialize page contents
+        newPage->init(newPageNo);
 		
+		// update relevant header page data
+        hdrPage->firstPage = newPageNo;
+        hdrPage->lastPage = newPageNo;
+        hdrPage->pageCnt++;
 		
+		// unpin pages, mark as dirty
+        bufMgr->unPinPage(file, hdrPageNo, true);
+        bufMgr->unPinPage(file, newPageNo, true);
 		
-		
-		
-		
-		
-		
-		
-		
-		
+		// close file
+		status = db.closeFile(file);
+        if (status != OK)
+            return status;
+        
+        return OK;
     }
     return (FILEEXISTS);
 }
