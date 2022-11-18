@@ -415,6 +415,68 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
         return INVALIDRECLEN;
     }
 
+    // Check if the current page is NULL
+    if (curPage == NULL) {
+        // Get the information from the last page, from headerPAge
+        curPageNo = headerPage->lastPage;
+        filePtr->readPage(curPageNo, curPage);
+        // Read this page into the buffer
+        bufMgr->readPage(filePtr, curPageNo, curPage);
+    }
+
+    // Attempt to insert the record
+    status = curPage->insertRecord(rec, outRid);
+
+    // If the record is inserted, then do the BOOKKEEPING
+    if (status == OK) {
+        // Do BOOKKEEPING
+        // New record
+        headerPage->recCnt++;
+        // Header updated (above)
+        hdrDirtyFlag = true;
+        // New rid
+        curRec = outRid;
+        // Page updated with new record?
+        curDirtyFlag = true;
+        return OK;
+    }
+
+    // If not inserted into current page, create a new page to insert into
+    // Create pointer for the last page
+    Page* lastPage;
+    // Get pointer to last page
+    filePtr->readPage(headerPage->lastPage, lastPage);
+    // Create a new page
+    bufMgr->allocPage(filePtr, newPageNo, newPage);
+    // Initialize it
+    newPage->init(newPageNo);
+
+    // modify content of the header page
+    headerPage->pageCnt++;
+    lastPage->setNextPage(newPageNo);
+    headerPage->lastPage = newPageNo;
+
+    // Update the current page information
+    curPage = newPage;
+    curPageNo = newPageNo;
+
+    // Try to insert the new record once more
+    status = curPage->insertRecord(rec, outRid);
+
+    // If successful do the bookkeeping
+    if (status == OK) {
+        // Do BOOKKEEPING
+        headerPage->recCnt++;
+        hdrDirtyFlag = true;
+        curRec = outRid;
+        curDirtyFlag = true;
+    }
+
+    // If not simply return the status
+    return status;
+        
+
+
   
   
   
