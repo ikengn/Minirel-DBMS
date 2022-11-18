@@ -85,8 +85,7 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     // open the file and read in the header page and the first data page
     if ((status = db.openFile(fileName, filePtr)) == OK)
     {
-		// initialize header page by calling createHeapFile (I am not so sure about this part)
-        //headerPage = new FileHdrPage();
+	// initialize header page by calling createHeapFile
         status = createHeapFile(fileName);
         if ( status != OK){
             returnStatus = status;
