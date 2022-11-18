@@ -468,6 +468,7 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
     Page* lastPage;
     // Get pointer to last page
     filePtr->readPage(headerPage->lastPage, lastPage);
+
     // Create a new page
     bufMgr->allocPage(filePtr, newPageNo, newPage);
     // Initialize it
@@ -475,6 +476,7 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
 
     // modify content of the header page
     headerPage->pageCnt++;
+
     lastPage->setNextPage(newPageNo);
     headerPage->lastPage = newPageNo;
 
@@ -497,20 +499,6 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
     // If not simply return the status
     return status;
         
-
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 }
 
 
