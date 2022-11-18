@@ -22,7 +22,7 @@ const Status createHeapFile(const string fileName)
         if (status != OK)
             return status;
         
-        // now that we have the file, open it TODO do we need to do this? I think so, bc otherwise we wouldn't be able to call allocPage?
+        // now that we have the file, open it
         status = db.openFile(fileName, file);
         if (status != OK)
             return status;
