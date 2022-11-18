@@ -85,17 +85,42 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     // open the file and read in the header page and the first data page
     if ((status = db.openFile(fileName, filePtr)) == OK)
     {
+		// initialize header page by calling createHeapFile (I am not so sure about this part)
+        headerPage = new FileHdrPage();
+        status = createHeapFile(fileName);
+        if ( status != OK){
+            returnStatus = status;
+            return;
+        }
+
+        // initialize header page number
+		status = filePtr->getFirstPage(headerPageNo);
+        if ( status != OK){
+            returnStatus = status;
+            return;
+        }
+        
+        // set the dirty flag
+        hdrDirtyFlag = false;
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+        // set current page number to first page number aka header page number for now
+        curPageNo = headerPageNo;
+
+        // read in the first page as current page
+        status = filePtr->readPage(curPageNo, curPage);
+        if ( status != OK){
+            returnStatus = status;
+            return;
+        }
+
+        // set the dirty flag
+        curDirtyFlag = false;
+
+        //set current record ID
+        curRec = NULLRID;
+
+        // set the return status to OK
+        returnStatus = OK;
     }
     else
     {
