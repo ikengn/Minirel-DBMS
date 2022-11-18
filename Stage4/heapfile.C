@@ -22,7 +22,7 @@ const Status createHeapFile(const string fileName)
         if (status != OK)
             return status;
         
-        // now that we have the file, open it
+        // now that we have the file, open it TODO do we need to do this? I think so, bc otherwise we wouldn't be able to call allocPage?
         status = db.openFile(fileName, file);
         if (status != OK)
             return status;
@@ -86,7 +86,7 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     if ((status = db.openFile(fileName, filePtr)) == OK)
     {
 		// initialize header page by calling createHeapFile (I am not so sure about this part)
-        headerPage = new FileHdrPage();
+        //headerPage = new FileHdrPage();
         status = createHeapFile(fileName);
         if ( status != OK){
             returnStatus = status;
