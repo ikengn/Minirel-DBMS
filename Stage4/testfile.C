@@ -65,15 +65,23 @@ int main(int argc, char **argv)
     cout << endl;
 
     cout << "Start an insert scan which will have the side effect of opening dummy.02 " << endl;
+   
     iScan = new InsertFileScan("dummy.02", status);
+
+    cout<< "## testpoint1" << endl;
+
     for(i = 0; i < num; i++) {
+
         sprintf(rec1.s, "This is record %05d", i);
         rec1.i = i;
         rec1.f = i;
 
         dbrec1.data = &rec1;
         dbrec1.length = sizeof(RECORD);
+   
+        cout<< "## testpoint2" << endl;
         status = iScan->insertRecord(dbrec1, newRid);
+        cout<< "## testpoint3" << endl;
 
 		// stash away rid and key of the record
 		ridArray[i] = newRid;

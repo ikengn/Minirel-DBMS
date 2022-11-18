@@ -85,28 +85,30 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     // open the file and read in the header page and the first data page
     if ((status = db.openFile(fileName, filePtr)) == OK)
     {
-	// initialize header page by calling createHeapFile
-        status = createHeapFile(fileName);
-        if ( status != OK){
-            returnStatus = status;
-            return;
-        }
-
+	
         // initialize header page number
 		status = filePtr->getFirstPage(headerPageNo);
         if ( status != OK){
             returnStatus = status;
             return;
         }
+
+        status = bufMgr->readPage(filePtr, headerPageNo, pagePtr);
+        if ( status != OK){
+            returnStatus = status;
+            return;
+        }
+        headerPage = (FileHdrPage *) pagePtr;
         
         // set the dirty flag
         hdrDirtyFlag = false;
 		
         // set current page number to first page number aka header page number for now
-        curPageNo = headerPageNo;
+        curPageNo = headerPage->firstPage;
 
         // read in the first page as current page
-        status = filePtr->readPage(curPageNo, curPage);
+        //File* file, const int PageNo, Page*& page
+        status = bufMgr->readPage(filePtr, curPageNo, curPage);
         if ( status != OK){
             returnStatus = status;
             return;
