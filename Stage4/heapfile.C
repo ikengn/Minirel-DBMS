@@ -179,13 +179,35 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
     Status status;
 
     // cout<< "getRecord. record (" << rid.pageNo << "." << rid.slotNo << ")" << endl;
-   
-   
-   
-   
-   
-   
-   
+
+    if (curPage == NULL) {
+        status = bufMgr->readPage(filePtr, rid.pageNo, curPage);
+        if (status != OK)
+            return status;
+        // set appropriate flags for reading in a new page
+        curPageNo = rid.pageNo;
+        curDirtyFlag = 0;
+        curRec = rid;
+    }
+    if (rid.pageNo == curPageNo) { // this IF is taken if the first IF was taken
+        status = curPage->getRecord(rid, rec);
+        return status;
+    }
+
+    // curPage is not the page we want (but wasn't null)
+    status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
+    if (status != OK)
+        return status;
+    
+    status = bufMgr->readPage(filePtr, rid.pageNo, curPage);
+    if (status != OK)
+        return status;
+    curPageNo = rid.pageNo;
+    curDirtyFlag = 0;
+    curRec = rid;
+
+    status = curPage->getRecord(rid, rec);
+    return status;
 }
 
 HeapFileScan::HeapFileScan(const string & name,
