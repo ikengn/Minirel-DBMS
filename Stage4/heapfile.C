@@ -81,33 +81,42 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
     Page*	pagePtr;
 
     cout << "opening file " << fileName << endl;
-
     // open the file and read in the header page and the first data page
     if ((status = db.openFile(fileName, filePtr)) == OK)
     {
-	
-        // initialize header page number
+        // initialize header page number 
 		status = filePtr->getFirstPage(headerPageNo);
         if ( status != OK){
             returnStatus = status;
             return;
         }
-
+        
+        // initialize header page based on the header page number.
         status = bufMgr->readPage(filePtr, headerPageNo, pagePtr);
         if ( status != OK){
             returnStatus = status;
             return;
         }
-        headerPage = (FileHdrPage *) pagePtr;
+        headerPage = (FileHdrPage*) pagePtr;
         
+        // this content is initialized in the earlier createFile call
+        cout << "##############################" <<endl;
+        cout << headerPage->fileName << endl;
+        cout << headerPage->pageCnt << endl;
+        cout << headerPage->recCnt << endl;
+        cout << headerPage->firstPage << endl;
+        cout << headerPage->lastPage << endl;
+        cout << "##############################" <<endl;
+
         // set the dirty flag
         hdrDirtyFlag = false;
 		
-        // set current page number to first page number aka header page number for now
+        // set current page number to first page number
         curPageNo = headerPage->firstPage;
 
+        cout << curPageNo << endl;
+
         // read in the first page as current page
-        //File* file, const int PageNo, Page*& page
         status = bufMgr->readPage(filePtr, curPageNo, curPage);
         if ( status != OK){
             returnStatus = status;
@@ -122,6 +131,10 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
 
         // set the return status to OK
         returnStatus = OK;
+        cout << "constructor returned OK." << endl;
+        cout << "headerPageNo: " << headerPageNo << endl;
+        cout << "curPageNo: " << curPageNo << endl;
+        cout << "##############################" <<endl;
     }
     else
     {
