@@ -304,16 +304,59 @@ const Status HeapFileScan::scanNext(RID& outRid)
     RID		tmpRid;
     int 	nextPageNo;
     Record      rec;
+    Status recStat;
 
-    
-	
-	
-	
-	
-	
-	
-	
-	
+    // checking if a marked scan exists
+    if (markedPageNo == 0) {
+        nextPageNo = headerPage->firstPage;
+        status = bufMgr->readPage(filePtr, nextPageNo, curPage);
+        curPageNo = nextPageNo;
+        recStat = curPage->firstRecord(nextRid);
+    } else {
+
+        // else start from the beginning
+        nextPageNo = markedPageNo;
+        status = bufMgr->readPage(filePtr, nextPageNo, curPage);
+        curPageNo = nextPageNo;
+        recStat = curPage->nextRecord(markedRec, nextRid);
+    }
+
+    if (status != OK)
+        return status;
+
+    // looping through all the pages
+    while (status == OK) {
+
+        // looping through records within a pages
+        while (recStat != NORECORDS && recStat != ENDOFPAGE) {
+            
+            tmpRid = nextRid;
+            recStat = curPage->getRecord(tmpRid, rec);
+
+            // comparing the record with the filter
+            if (recStat == OK && matchRec(rec)) {
+                outRid = tmpRid;
+                curRec = tmpRid;
+                markScan();
+                return OK;
+            }
+
+            recStat = curPage->nextRecord(tmpRid, nextRid);
+        }    
+
+        // moving to the next page and getting the first record
+        curPage->getNextPage(nextPageNo);    
+        status = bufMgr->readPage(filePtr, nextPageNo, curPage);
+        if (status == OK) {
+            curPageNo = nextPageNo;
+            recStat = curPage->firstRecord(nextRid);
+        } else {
+            return status;
+        }
+        
+        if (status == FILEEOF) 
+            return FILEEOF;
+    }
 	
 }
 
