@@ -229,7 +229,7 @@ HeapFileScan::HeapFileScan(const string & name,
 			   Status & status) : HeapFile(name, status)
 {
     filter = NULL;
-    markedPageNo = 0;
+    markedPageNo = -1;
 }
 
 const Status HeapFileScan::startScan(const int offset_,
@@ -322,7 +322,7 @@ const Status HeapFileScan::scanNext(RID& outRid)
     Status recStat;
 
     // checking if a marked scan exists -- if not, start at first page
-    if (markedPageNo == 0) {
+    if (markedPageNo == -1) {
         nextPageNo = headerPage->firstPage;
         // clear out current page
         if (curPage != NULL) {
