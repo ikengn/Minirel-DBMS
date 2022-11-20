@@ -522,9 +522,11 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
     if (curPage == NULL) {
         // Get the information from the last page, from headerPAge
         curPageNo = headerPage->lastPage;
-        //filePtr->readPage(curPageNo, curPage);
         // Read this page into the buffer
-        bufMgr->readPage(filePtr, curPageNo, curPage);
+        status = bufMgr->readPage(filePtr, curPageNo, curPage);
+        if (status != OK) {
+            return status;
+        }
     }
 
     // Attempt to insert the record
@@ -546,7 +548,7 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
 
     // If not inserted into current page, create a new page to insert into
     // Create pointer for the last page
-    Page* lastPage;
+    Page* lastPage = NULL;
     int lastPageNo;
     // Get pointer to last page
     //filePtr->readPage(headerPage->lastPage, lastPage);
