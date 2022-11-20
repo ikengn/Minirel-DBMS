@@ -130,7 +130,7 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         curRec = NULLRID;
 
         // set the return status to OK
-        // returnStatus = OK;
+        returnStatus = OK;
         // cout << "constructor returned OK." << endl;
         // cout << "headerPageNo: " << headerPageNo << endl;
         // cout << "curPageNo: " << curPageNo << endl;
@@ -229,6 +229,7 @@ HeapFileScan::HeapFileScan(const string & name,
 			   Status & status) : HeapFile(name, status)
 {
     filter = NULL;
+    markedPageNo = 0;
 }
 
 const Status HeapFileScan::startScan(const int offset_,
@@ -334,23 +335,14 @@ const Status HeapFileScan::scanNext(RID& outRid)
         curPageNo = nextPageNo;
         recStat = curPage->firstRecord(nextRid);
     } else {
-        // else start from the mark
-        nextPageNo = markedPageNo;
-        // clear out current page
-        if (curPage != NULL) {
-            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
-            curDirtyFlag = false;
-            if (status != OK)
-                return status;
-        }
-        status = bufMgr->readPage(filePtr, nextPageNo, curPage);
-        curPageNo = nextPageNo;
+        // Redundant code
+        resetScan();
         recStat = curPage->nextRecord(markedRec, nextRid);
     }
 
     if (status != OK)
         return status;
-
+        
     // looping through all the pages
     while (status == OK) {
 
