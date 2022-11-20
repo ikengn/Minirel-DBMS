@@ -42,7 +42,7 @@ private:
     short	slotCnt; // number of slots in use;
     short	freePtr; // offset of first free byte in data[]
     short	freeSpace; // number of bytes free in data[]
-    short	dummy;	// for alignment purposes
+    //short	dummy;	// for alignment purposes
     int		nextPage; // forwards pointer
     int		curPage;  // page number of current pointer
 
