@@ -79,9 +79,9 @@ int main(int argc, char **argv)
         dbrec1.data = &rec1;
         dbrec1.length = sizeof(RECORD);
    
-        cout<< "## testpoint2" << endl;
+        //cout<< "## testpoint2" << endl;
         status = iScan->insertRecord(dbrec1, newRid);
-        cout<< "## testpoint3" << endl;
+        //cout<< "## testpoint3" << endl;
 
 		// stash away rid and key of the record
 		ridArray[i] = newRid;
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 
 			// compare with what we should get back
 			if (memcmp(&rec1, dbrec2.data, sizeof(RECORD)) != 0) 
-			    cout << "err0r reading record " << i << " back" << endl;
+			    cout << "err0r reading record " << i << " back (spot 1)" << endl;
 		}
 		cout << "getRecord() tests passed successfully" << endl;
     }
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
     	    status = scan1->getRecord(dbrec2);
     	    if (status != OK) break;
 			if (memcmp(&rec1, dbrec2.data, sizeof(RECORD)) != 0)
-                cout << "err0r reading record " << i << " back" << endl;
+                cout << "err0r reading record " << i << " back (spot 2)" << endl;
     	    i++;
 		}
 		if (status != FILEEOF) error.print(status);
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     	    status = scan1->getRecord(dbrec2);
     	    if (status != OK) break;
 			if (memcmp(&rec1, dbrec2.data, sizeof(RECORD)) != 0)
-			cout << "err0r reading record " << i << " back" << endl;
+			cout << "err0r reading record " << i << " back  (spot 3)" << endl;
     	    i++;
 		}
 		if (status != FILEEOF) error.print(status);
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 
 			// compare with what we should get back
 			if (memcmp(&rec1, dbrec2.data, sizeof(RECORD)) != 0)
-			cout << "err0r reading record " << i << " back" << endl;
+			cout << "err0r reading record " << i << " back  (spot 4)" << endl;
 		}
 		cout << "getRecord() tests passed successfully" << endl;
     }
@@ -387,7 +387,7 @@ int main(int argc, char **argv)
             if (status != OK) break;
             memcpy(&rec2, dbrec2.data, dbrec2.length);
             if (rec2.i >= j || rec2.f != dbrec2.length || rec2.s[0] != 32+dbrec2.length-8)
-                cout << "err0r reading record " << i << " back" << endl;
+                cout << "err0r reading record " << i << " back (spot 5)" << endl;
             i++;
         }
         if (status != FILEEOF)
@@ -512,7 +512,7 @@ int main(int argc, char **argv)
     	    status = scan1->getRecord(dbrec2);
     	    if (status != OK) break;
 	    if (memcmp(&rec1, dbrec2.data, sizeof(RECORD)) != 0)
-                cout << "err0r reading record " << i << " back" << endl;
+                cout << "err0r reading record " << i << " back (spot 6)" << endl;
 
 	    if ((i > 1000) && ( i <= 2000))
             {

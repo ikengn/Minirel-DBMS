@@ -22,7 +22,7 @@ const Status createHeapFile(const string fileName)
         if (status != OK)
             return status;
         
-        // now that we have the file, open it TODO do we need to do this? I think so, bc otherwise we wouldn't be able to call allocPage?
+        // now that we have the file, open it
         status = db.openFile(fileName, file);
         if (status != OK)
             return status;
@@ -35,7 +35,7 @@ const Status createHeapFile(const string fileName)
         hdrPage = (FileHdrPage *) hdrPageUncasted;
 
         // Initialize the header page values
-        strcpy(hdrPage->fileName, fileName.c_str()); // TODO might be a better way to do this (I'm used to C)
+        strcpy(hdrPage->fileName, fileName.c_str());
         hdrPage->pageCnt = 1;
         hdrPage->recCnt = 0;
         hdrPage->firstPage = -1;
@@ -100,13 +100,13 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         headerPage = (FileHdrPage*) pagePtr;
         
         // this content is initialized in the earlier createFile call
-        cout << "##############################" <<endl;
-        cout << headerPage->fileName << endl;
-        cout << headerPage->pageCnt << endl;
-        cout << headerPage->recCnt << endl;
-        cout << headerPage->firstPage << endl;
-        cout << headerPage->lastPage << endl;
-        cout << "##############################" <<endl;
+        // cout << "##############################" <<endl;
+        // cout << headerPage->fileName << endl;
+        // cout << headerPage->pageCnt << endl;
+        // cout << headerPage->recCnt << endl;
+        // cout << headerPage->firstPage << endl;
+        // cout << headerPage->lastPage << endl;
+        // cout << "##############################" <<endl;
 
         // set the dirty flag
         hdrDirtyFlag = false;
@@ -114,7 +114,7 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         // set current page number to first page number
         curPageNo = headerPage->firstPage;
 
-        cout << curPageNo << endl;
+        //cout << curPageNo << endl;
 
         // read in the first page as current page
         status = bufMgr->readPage(filePtr, curPageNo, curPage);
@@ -130,11 +130,11 @@ HeapFile::HeapFile(const string & fileName, Status& returnStatus)
         curRec = NULLRID;
 
         // set the return status to OK
-        returnStatus = OK;
-        cout << "constructor returned OK." << endl;
-        cout << "headerPageNo: " << headerPageNo << endl;
-        cout << "curPageNo: " << curPageNo << endl;
-        cout << "##############################" <<endl;
+        // returnStatus = OK;
+        // cout << "constructor returned OK." << endl;
+        // cout << "headerPageNo: " << headerPageNo << endl;
+        // cout << "curPageNo: " << curPageNo << endl;
+        // cout << "##############################" <<endl;
     }
     else
     {
@@ -210,6 +210,7 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
 
     // curPage is not the page we want (but wasn't null)
     status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
+    curDirtyFlag = false;
     if (status != OK)
         return status;
     
@@ -217,7 +218,7 @@ const Status HeapFile::getRecord(const RID & rid, Record & rec)
     if (status != OK)
         return status;
     curPageNo = rid.pageNo;
-    curDirtyFlag = 0;
+    curDirtyFlag = false;
     curRec = rid;
 
     status = curPage->getRecord(rid, rec);
@@ -319,16 +320,29 @@ const Status HeapFileScan::scanNext(RID& outRid)
     Record      rec;
     Status recStat;
 
-    // checking if a marked scan exists
+    // checking if a marked scan exists -- if not, start at first page
     if (markedPageNo == 0) {
         nextPageNo = headerPage->firstPage;
+        // clear out current page
+        if (curPage != NULL) {
+            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
+            curDirtyFlag = false;
+            if (status != OK)
+                return status;
+        }
         status = bufMgr->readPage(filePtr, nextPageNo, curPage);
         curPageNo = nextPageNo;
         recStat = curPage->firstRecord(nextRid);
     } else {
-
-        // else start from the beginning
+        // else start from the mark
         nextPageNo = markedPageNo;
+        // clear out current page
+        if (curPage != NULL) {
+            status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
+            curDirtyFlag = false;
+            if (status != OK)
+                return status;
+        }
         status = bufMgr->readPage(filePtr, nextPageNo, curPage);
         curPageNo = nextPageNo;
         recStat = curPage->nextRecord(markedRec, nextRid);
@@ -358,7 +372,17 @@ const Status HeapFileScan::scanNext(RID& outRid)
         }    
 
         // moving to the next page and getting the first record
-        curPage->getNextPage(nextPageNo);    
+        curPage->getNextPage(nextPageNo);
+        // check that we're gonna fetch a valid page -- if nextPageNo is -1, we're on the last page
+        if (nextPageNo == -1)
+            return FILEEOF;
+        
+        // clear out current page
+        status = bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
+        curDirtyFlag = false;
+        if (status != OK)
+            return status;
+
         status = bufMgr->readPage(filePtr, nextPageNo, curPage);
         if (status == OK) {
             curPageNo = nextPageNo;
@@ -367,10 +391,10 @@ const Status HeapFileScan::scanNext(RID& outRid)
             return status;
         }
         
-        if (status == FILEEOF) 
+        if (status == FILEEOF) // TODO don't think we need this
             return FILEEOF;
     }
-	return FILEEOF;
+    return FILEEOF;
 }
 
 
@@ -498,7 +522,6 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
     if (curPage == NULL) {
         // Get the information from the last page, from headerPAge
         curPageNo = headerPage->lastPage;
-        
         // Read this page into the buffer
         status = bufMgr->readPage(filePtr, curPageNo, curPage);
         if (status != OK) {
@@ -517,7 +540,7 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
         // Header updated (above)
         hdrDirtyFlag = true;
         // New rid
-        curRec = outRid;
+        //curRec = outRid;
         // Page updated with new record?
         curDirtyFlag = true;
         return OK;
@@ -526,9 +549,11 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
     // If not inserted into current page, create a new page to insert into
     // Create pointer for the last page
     Page* lastPage = NULL;
-
+    int lastPageNo;
     // Get pointer to last page
-    filePtr->readPage(headerPage->lastPage, lastPage);
+    //filePtr->readPage(headerPage->lastPage, lastPage);
+    lastPageNo = headerPage->lastPage;
+    bufMgr->readPage(filePtr, lastPageNo, lastPage);
 
     // Create a new page
     bufMgr->allocPage(filePtr, newPageNo, newPage);
@@ -540,6 +565,12 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
 
     lastPage->setNextPage(newPageNo);
     headerPage->lastPage = newPageNo;
+
+    // write out curPage TODO docs don't say you need to do this but I think we do
+    bufMgr->unPinPage(filePtr, curPageNo, curDirtyFlag);
+    curDirtyFlag = false;
+    // also write out lastPage since it was modified TODO does changing the nextPage count as a modification?
+    bufMgr->unPinPage(filePtr, lastPageNo, true);
 
     // Update the current page information
     curPage = newPage;
@@ -553,7 +584,7 @@ const Status InsertFileScan::insertRecord(const Record & rec, RID& outRid)
         // Do BOOKKEEPING
         headerPage->recCnt++;
         hdrDirtyFlag = true;
-        curRec = outRid;
+        //curRec = outRid;
         curDirtyFlag = true;
     }
 
