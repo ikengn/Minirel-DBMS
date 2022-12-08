@@ -19,18 +19,61 @@ const Status ScanSelect(const string & result,
  * 	an error code otherwise
  */
 
-const Status QU_Select(const string & result, 
-		       const int projCnt, 
-		       const attrInfo projNames[],
-		       const attrInfo *attr, 
-		       const Operator op, 
-		       const char *attrValue)
+const Status QU_Select(const string & result,
+               const int projCnt,
+               const attrInfo projNames[],
+               const attrInfo *attr,
+               const Operator op,
+               const char *attrValue)
 {
    // Qu_Select sets up things and then calls ScanSelect to do the actual work
     cout << "Doing QU_Select " << endl;
 
-}
+	int reclen = 0;
+	AttrDesc names[projCnt];
+	Status status = OK;
 
+    for (int i = 0; i< projCnt; i++){
+		// get the AttrDesc value according to attrInfo
+        status = attrCat->getInfo(projNames[i].relName, projNames[i].attrName, names[i]);
+		if (status != OK){
+			return status;
+		}
+
+		// increment the total record length by the length of this attribute
+		reclen += names[i].attrLen;
+
+		//debug output
+        //cout<< names[i].relName << " " << names[i].attrName<<" "<< names[i].attrType << " " << names[i].attrLen<< " "<< names[i].attrOffset<<endl;
+    }
+
+    AttrDesc* attrDesc = new AttrDesc();
+    if (attr == NULL){
+        attrDesc = NULL;
+		
+		// call the ScanSelect method to do the actual work
+		status = ScanSelect(result, projCnt, names, attrDesc, op, attrValue,  reclen);
+		if (status != OK){
+			return status;
+		}
+    }else{
+		// get the AttrDesc value according to attrInfo
+		status = attrCat->getInfo(attr->relName, attr->attrName, *attrDesc);
+		if (status != OK){
+			return status;
+		}
+
+		//debug output
+		//cout<< attrDesc->relName << " " << attrDesc->attrName<<" "<< attrDesc->attrType << " " << attrDesc->attrLen<< " "<< attrDesc->attrOffset<<endl;
+		
+		// call the ScanSelect method to do the actual work
+		status = ScanSelect(result, projCnt, names, attrDesc, op, attrValue,  reclen);
+		if (status != OK){
+			return status;
+		}
+	}
+    return OK;
+}
 
 const Status ScanSelect(const string & result, 
 #include "stdio.h"
