@@ -14,8 +14,14 @@ const Status QU_Insert(const string & relation,
 	const int attrCnt, 
 	const attrInfo attrList[])
 {
-// part 6
-return OK;
+	// Ensure no nulls are present before we try to insert
+	for (int i = 0; i < attrCnt; i++) {
+		if (attrList[i].attrValue == NULL) {
+			return ATTRNOTFOUND;
+		}
+	}
 
+	// 
+	return OK;
 }
 
