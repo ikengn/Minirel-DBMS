@@ -25,7 +25,7 @@ const Status QU_Delete(const string & relation,
 	if (status != OK) {return status;}
 
 	// Check if the input parameter is NULL
-	if (attrName[0] == '\0') {
+	if (strcmp(attrName,NULL)) {
 
 		status = deleteScan.startScan(0, 0, STRING, NULL, op);
 		if (status != OK) { return status; }
