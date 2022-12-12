@@ -23,7 +23,7 @@ const Status QU_Delete(const string & relation,
 	// Create HeapFileScan with the given information
 	HeapFileScan deleteScan(relation, status);
 	if (status != OK) {return status;}
-	cout << attrName << endl;
+	
 	// Check if the input parameter is NULL
 	if (attrName=="") {
 
