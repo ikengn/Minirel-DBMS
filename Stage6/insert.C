@@ -30,14 +30,23 @@ const Status QU_Insert(const string & relation,
 		if (attrList[i].attrValue == NULL) {
 			return ATTRNOTFOUND;
 		}
-		recSize += attrList[i].attrLen;
+		AttrDesc currAttrDesc;
+		status = attrCat->getInfo(relation, attrList[i].attrName, currAttrDesc);
+		if (status != OK) {
+			return status;
+		}
+		recSize += currAttrDesc.attrLen;
 	}
 	
 	// create Record to hold all the data in the proper order
 	Record recToInsert;
 	recToInsert.length = recSize;
-	char *recData;
-	recData = (char *)malloc(recSize);
+	char recData[recSize];
+	// char *recData;
+	// recData = (char *)malloc(recSize);
+	// if (recData == NULL) {
+	// 	cout << "NULL" << endl;
+	// }
 	recToInsert.data = recData;
 	
 	// fetch the data and put it in recData
@@ -45,13 +54,11 @@ const Status QU_Insert(const string & relation,
 		AttrDesc currAttrDesc;
 		status = attrCat->getInfo(relation, attrList[i].attrName, currAttrDesc);
 		if (status != OK) {
-			free(recData);
+			//free(recData);
 			return status;
 		}
 		// copy data into appropiate spot in recData
-		cout << "inserting... recData = " << recData << ", attrValue = " << attrList[i].attrValue << endl;
-		memcpy(recData, attrList[i].attrValue, attrList[i].attrLen); // TODO is this the proper way to incorporate the offset for recData?
-		cout << "finished insert" << endl;
+		memcpy(recData + currAttrDesc.attrOffset, attrList[i].attrValue, currAttrDesc.attrLen);
 	}
 
 	// insert into heapfile for the relation, which is done by creating a new InsertFileScan object
@@ -60,13 +67,13 @@ const Status QU_Insert(const string & relation,
 	RID recRID;
 	status = ifs->insertRecord(recToInsert, recRID);
 	if (status != OK) {
-		free(recData);
+		//free(recData);
 		delete ifs;
 		return status;
 	}
 
 	// deallocate mem
-	free(recData);
+	//free(recData);
 	delete ifs;
 	return OK;
 }
