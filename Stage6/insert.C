@@ -36,7 +36,8 @@ const Status QU_Insert(const string & relation,
 	// create Record to hold all the data in the proper order
 	Record recToInsert;
 	recToInsert.length = recSize;
-	void *recData = malloc(recSize);
+	char *recData;
+	recData = (char *)malloc(recSize);
 	recToInsert.data = recData;
 	
 	// fetch the data and put it in recData
@@ -48,7 +49,9 @@ const Status QU_Insert(const string & relation,
 			return status;
 		}
 		// copy data into appropiate spot in recData
-		memcpy(((char *)recData + currAttrDesc.attrOffset), attrList[i].attrValue, attrList[i].attrLen); // TODO is this the proper way to incorporate the offset for recData?
+		cout << "inserting... recData = " << recData << ", attrValue = " << attrList[i].attrValue << endl;
+		memcpy(recData, attrList[i].attrValue, attrList[i].attrLen); // TODO is this the proper way to incorporate the offset for recData?
+		cout << "finished insert" << endl;
 	}
 
 	// insert into heapfile for the relation, which is done by creating a new InsertFileScan object
