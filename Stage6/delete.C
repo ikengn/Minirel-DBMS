@@ -20,40 +20,54 @@ const Status QU_Delete(const string & relation,
 	Status status;
 	AttrDesc currAttr;
 
+	// Create HeapFileScan with the given information
+	HeapFileScan deleteScan(relation, status);
+	if (status != OK) {return status;}
+
 	// Check if the input parameter is NULL
 	if (attrName[0] == '\0') {
 
-		return BADCATPARM;
+		status = deleteScan.startScan(0, 0, STRING, NULL, op);
+		if (status != OK) { return status; }
 
 	}
 
 	// Look up attribute info
 	status =  attrCat->getInfo(relation, attrName, currAttr);
 	if (status != OK) { return status; }
-
-
-	// Create HeapFileScan with the given information
-	HeapFileScan deleteScan(relation, status);
-	if (status != OK) {return status;}
-
-	// TODO: Figure out how to cast filter to a certain type
-	status = deleteScan.startScan(currAttr.attrOffset, 
-				currAttr.attrLen, type, attrValue, op);
+	
 
 	// Get correct attribute type and start scan with correct type
 	if (type == INTEGER) {
 
 		int currValue;
+		char* currFilter;
 		currValue = atoi(attrValue);
+		currFilter = (char*) &currValue;
+
+		status = deleteScan.startScan(currAttr.attrOffset, 
+				currAttr.attrLen, type, currFilter, op);
+
 		
 
 	} else if (type == FLOAT) {
 
 		float currValue;
+		char* currFilter;
 		currValue = atof(attrValue);
+		currFilter = (char*) &currValue;
+
+		status = deleteScan.startScan(currAttr.attrOffset, 
+				currAttr.attrLen, type, currFilter, op);
 		
 
+	} else {
+
+		status = deleteScan.startScan(currAttr.attrOffset, 
+				currAttr.attrLen, type, attrValue, op);
+
 	}
+
 
 	RID scanRID;
 
@@ -61,8 +75,8 @@ const Status QU_Delete(const string & relation,
 	while (deleteScan.scanNext(scanRID) == OK) {
 
 		// Delete record
-		// Is this what you need to do/all you need to do???
-		deleteScan.deleteRecord();
+		status = deleteScan.deleteRecord();
+		if (status != OK) { return status;}
 
 	}
 
