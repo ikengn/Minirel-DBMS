@@ -48,7 +48,7 @@ const Status QU_Insert(const string & relation,
 			return status;
 		}
 		// copy data into appropiate spot in recData
-		memcpy((recData + currAttrDesc.attrOffset), attrList[i].attrValue, attrList[i].attrLen); // TODO is this the proper way to incorporate the offset for recData?
+		memcpy(((char *)recData + currAttrDesc.attrOffset), attrList[i].attrValue, attrList[i].attrLen); // TODO is this the proper way to incorporate the offset for recData?
 	}
 
 	// insert into heapfile for the relation, which is done by creating a new InsertFileScan object
