@@ -23,51 +23,50 @@ const Status QU_Delete(const string & relation,
 	// Create HeapFileScan with the given information
 	HeapFileScan deleteScan(relation, status);
 	if (status != OK) {return status;}
-
+	cout << attrName << endl;
 	// Check if the input parameter is NULL
-	if (strcmp(attrName,NULL)) {
+	if (attrName=="") {
 
 		status = deleteScan.startScan(0, 0, STRING, NULL, op);
 		if (status != OK) { return status; }
-
-	}
-
-	// Look up attribute info
-	status =  attrCat->getInfo(relation, attrName, currAttr);
-	if (status != OK) { return status; }
 	
-
-	// Get correct attribute type and start scan with correct type
-	if (type == INTEGER) {
-
-		int currValue;
-		char* currFilter;
-		currValue = atoi(attrValue);
-		currFilter = (char*) &currValue;
-
-		status = deleteScan.startScan(currAttr.attrOffset, 
-				currAttr.attrLen, type, currFilter, op);
-
+	}else{
+		// Look up attribute info
+		status =  attrCat->getInfo(relation, attrName, currAttr);
+		if (status != OK) { return status; }
 		
 
-	} else if (type == FLOAT) {
+		// Get correct attribute type and start scan with correct type
+		if (type == INTEGER) {
 
-		float currValue;
-		char* currFilter;
-		currValue = atof(attrValue);
-		currFilter = (char*) &currValue;
+			int currValue;
+			char* currFilter;
+			currValue = atoi(attrValue);
+			currFilter = (char*) &currValue;
 
-		status = deleteScan.startScan(currAttr.attrOffset, 
-				currAttr.attrLen, type, currFilter, op);
-		
+			status = deleteScan.startScan(currAttr.attrOffset, 
+					currAttr.attrLen, type, currFilter, op);
 
-	} else {
+			
 
-		status = deleteScan.startScan(currAttr.attrOffset, 
-				currAttr.attrLen, type, attrValue, op);
+		} else if (type == FLOAT) {
 
+			float currValue;
+			char* currFilter;
+			currValue = atof(attrValue);
+			currFilter = (char*) &currValue;
+
+			status = deleteScan.startScan(currAttr.attrOffset, 
+					currAttr.attrLen, type, currFilter, op);
+			
+
+		} else {
+
+			status = deleteScan.startScan(currAttr.attrOffset, 
+					currAttr.attrLen, type, attrValue, op);
+
+		}
 	}
-
 
 	RID scanRID;
 
