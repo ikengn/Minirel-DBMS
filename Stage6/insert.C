@@ -41,12 +41,12 @@ const Status QU_Insert(const string & relation,
 	// create Record to hold all the data in the proper order
 	Record recToInsert;
 	recToInsert.length = recSize;
-	char recData[recSize];
-	// char *recData;
-	// recData = (char *)malloc(recSize);
-	// if (recData == NULL) {
-	// 	cout << "NULL" << endl;
-	// }
+	char *recData;
+	recData = (char *)malloc(recSize);
+	if (recData == NULL) {
+		cout << "NULL returned by malloc" << endl;
+		return OK;
+	}
 	recToInsert.data = recData;
 	
 	// fetch the data and put it in recData
@@ -54,26 +54,37 @@ const Status QU_Insert(const string & relation,
 		AttrDesc currAttrDesc;
 		status = attrCat->getInfo(relation, attrList[i].attrName, currAttrDesc);
 		if (status != OK) {
-			//free(recData);
+			free(recData);
 			return status;
 		}
 		// copy data into appropiate spot in recData
-		memcpy(recData + currAttrDesc.attrOffset, attrList[i].attrValue, currAttrDesc.attrLen);
+		if (currAttrDesc.attrType == INTEGER) {
+			int temp;
+			temp = atoi((char*)attrList[i].attrValue);
+			memcpy(recData + currAttrDesc.attrOffset, &temp, currAttrDesc.attrLen);
+		}
+		else if (currAttrDesc.attrType == FLOAT) {
+			float temp;
+			temp = atof((char*)attrList[i].attrValue);
+			memcpy(recData + currAttrDesc.attrOffset, &temp, currAttrDesc.attrLen);
+		}
+		else {
+			memcpy(recData + currAttrDesc.attrOffset, attrList[i].attrValue, currAttrDesc.attrLen);
+		}
 	}
 
 	// insert into heapfile for the relation, which is done by creating a new InsertFileScan object
-	// TODO unsure on if it's supposed to create a new object here... that's the only way I can think of to do it, b/c I can't find any already-created heapfile object for the relation
 	InsertFileScan *ifs = new InsertFileScan(relation, status);
 	RID recRID;
 	status = ifs->insertRecord(recToInsert, recRID);
 	if (status != OK) {
-		//free(recData);
+		free(recData);
 		delete ifs;
 		return status;
 	}
 
 	// deallocate mem
-	//free(recData);
+	free(recData);
 	delete ifs;
 	return OK;
 }
