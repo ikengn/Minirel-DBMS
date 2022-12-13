@@ -14,6 +14,8 @@ const Status QU_Insert(const string & relation,
 	const int attrCnt, 
 	const attrInfo attrList[])
 {
+	cout << "Doing QU_Insert" << endl;
+
 	// make sure attrCount corresponds to # of attr in relation
 	RelDesc currRelation;
 	Status status = relCat->getInfo(relation, currRelation);
