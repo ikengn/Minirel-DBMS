@@ -99,7 +99,17 @@ const Status ScanSelect(const string & result,
 	heap_scan = new HeapFileScan(rel_name, status); 
 	// check if an unconditional scan is required
 	if (attrDesc != NULL){
-		heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, static_cast<Datatype>(attrDesc->attrType), filter, op);
+		if (attrDesc->attrType == INTEGER) {
+			int temp = atoi(filter);
+			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, INTEGER, (char *)&temp, op);
+		}
+		else if (attrDesc->attrType == FLOAT) {
+			float temp = atof(filter);
+			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, FLOAT, (char *)&temp, op);
+		}
+		else {
+			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, STRING, filter, op);
+		}
 	}
 
 	if (status != OK) {
