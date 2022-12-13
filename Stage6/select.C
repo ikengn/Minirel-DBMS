@@ -86,6 +86,57 @@ const Status ScanSelect(const string & result,
 			const int reclen)
 {
     cout << "Doing HeapFileScan Selection using ScanSelect()" << endl;
+	
+	// Temporarary record for output table
+	RID rid;
+	Record rec;
+	Status status;
 
+	// open current table (to be scanned) as a HeapFileScan object
+	string rel_name = projNames[0].relName;
+	HeapFileScan *heap_scan = NULL;
+
+	heap_scan = new HeapFileScan(rel_name, status); 
+	// check if an unconditional scan is required
+	if (attrDesc != NULL){
+		heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, static_cast<Datatype>(attrDesc->attrType), filter, op);
+	}
+
+	if (status != OK) {
+		return status;
+	}
+
+	// open "result" as an InsertFileScan object
+	InsertFileScan out_table(result, status);
+	if (status != OK) {
+		return status;
+	}
+
+	// scan the current table
+	while (heap_scan->scanNext(rid) == OK) {
+
+		heap_scan->HeapFile::getRecord(rid, rec);
+		char *data = new char[reclen];
+		Record temp_rec = {data, reclen};
+		int offset = 0;
+
+		// if find a record, then copy stuff over to the temporary record
+		for (int i = 0; i < projCnt; i++) {
+			char *n_place = data + offset;
+			int byte = projNames[i].attrLen;
+			char *place = ((char*)rec.data) + projNames[i].attrOffset;
+			memcpy(n_place, place, byte);
+			offset += byte;
+		}
+
+		// insert into the output table
+		RID temp_rid;
+		status = out_table.insertRecord(temp_rec, temp_rid);
+		if (status != OK) {
+			return status;
+		}
+	}
+
+	return status;
 
 }
