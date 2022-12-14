@@ -32,6 +32,7 @@ const Status QU_Select(const string & result,
 	int reclen = 0;
 	AttrDesc names[projCnt];
 	Status status = OK;
+	const char* filter;
 
     for (int i = 0; i< projCnt; i++){
 		// get the AttrDesc value according to attrInfo
@@ -52,11 +53,29 @@ const Status QU_Select(const string & result,
         attrDesc = NULL;
 		
 		// call the ScanSelect method to do the actual work
-		status = ScanSelect(result, projCnt, names, attrDesc, op, attrValue,  reclen);
+		status = ScanSelect(result, projCnt, names, attrDesc, op, filter,  reclen);
 		if (status != OK){
 			return status;
 		}
     }else{
+
+		int tmpInt;
+        float tmpFloat;
+        //convert to proper data type
+        switch (attr->attrType) {
+            case INTEGER:
+                tmpInt = atoi(attrValue);
+                filter = (char*)&tmpInt;
+                break;
+            case FLOAT:
+                tmpFloat = atof(attrValue);
+                filter = (char*)&tmpFloat;
+                break;
+            case STRING:
+                filter = attrValue;
+                break;
+		}
+
 		// get the AttrDesc value according to attrInfo
 		status = attrCat->getInfo(attr->relName, attr->attrName, *attrDesc);
 		if (status != OK){
@@ -67,7 +86,7 @@ const Status QU_Select(const string & result,
 		//cout<< attrDesc->relName << " " << attrDesc->attrName<<" "<< attrDesc->attrType << " " << attrDesc->attrLen<< " "<< attrDesc->attrOffset<<endl;
 		
 		// call the ScanSelect method to do the actual work
-		status = ScanSelect(result, projCnt, names, attrDesc, op, attrValue,  reclen);
+		status = ScanSelect(result, projCnt, names, attrDesc, op, filter,  reclen);
 		if (status != OK){
 			return status;
 		}
@@ -100,12 +119,10 @@ const Status ScanSelect(const string & result,
 	// check if an unconditional scan is required
 	if (attrDesc != NULL){
 		if (attrDesc->attrType == INTEGER) {
-			int temp = atoi(filter);
-			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, INTEGER, (char *)&temp, op);
+			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, INTEGER, filter, op);
 		}
 		else if (attrDesc->attrType == FLOAT) {
-			float temp = atof(filter);
-			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, FLOAT, (char *)&temp, op);
+			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, FLOAT, filter, op);
 		}
 		else {
 			heap_scan->startScan(attrDesc->attrOffset, attrDesc->attrLen, STRING, filter, op);
