@@ -59,17 +59,17 @@ const Status QU_Select(const string & result,
 		}
     }else{
 
-		int tmpInt;
-        float tmpFloat;
-        //convert to proper data type
+		// // Get correct attribute type
+		int intVal;
+        float floatVal;
         switch (attr->attrType) {
             case INTEGER:
-                tmpInt = atoi(attrValue);
-                filter = (char*)&tmpInt;
+                intVal = atoi(attrValue);
+                filter = (char*)&intVal;
                 break;
             case FLOAT:
-                tmpFloat = atof(attrValue);
-                filter = (char*)&tmpFloat;
+                floatVal = atof(attrValue);
+                filter = (char*)&floatVal;
                 break;
             case STRING:
                 filter = attrValue;
@@ -145,15 +145,15 @@ const Status ScanSelect(const string & result,
 		heap_scan->HeapFile::getRecord(rid, rec);
 		char *data = new char[reclen];
 		Record temp_rec = {data, reclen};
-		int offset = 0;
+		int off_set = 0;
 
 		// if find a record, then copy stuff over to the temporary record
 		for (int i = 0; i < projCnt; i++) {
-			char *n_place = data + offset;
-			int byte = projNames[i].attrLen;
+			char *n_place = data + off_set;
 			char *place = ((char*)rec.data) + projNames[i].attrOffset;
-			memcpy(n_place, place, byte);
-			offset += byte;
+			int len = projNames[i].attrLen;
+			memcpy(n_place, place, len);
+			off_set += len;
 		}
 
 		// insert into the output table

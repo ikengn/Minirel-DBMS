@@ -39,23 +39,22 @@ const Status QU_Delete(const string & relation,
 		
 
 		// Get correct attribute type and start scan with correct type
-		int tmpInt;
-    	float tmpFloat;
-    	//convert to proper data type
+		int intVal;
+    	float floatVal;
    		switch (type) {
         	case INTEGER:
-            	tmpInt = atoi(attrValue);
-            	filter = (char*)&tmpInt;
+            	intVal = atoi(attrValue);
+            	filter = (char*)&intVal;
             	break;
-        case FLOAT:
-           		tmpFloat = atof(attrValue);
-            	filter = (char*)&tmpFloat;
+        	case FLOAT:
+           		floatVal = atof(attrValue);
+            	filter = (char*)&floatVal;
             	break;
-        case STRING:
+        	case STRING:
             	filter = attrValue;
             	break;
     	}
-		
+
 		if (type == INTEGER) {
 
 			status = deleteScan.startScan(currAttr.attrOffset, 
