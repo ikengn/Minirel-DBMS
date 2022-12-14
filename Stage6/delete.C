@@ -20,6 +20,7 @@ const Status QU_Delete(const string & relation,
 
 	Status status;
 	AttrDesc currAttr;
+	const char* filter;
 
 	// Create HeapFileScan with the given information
 	HeapFileScan deleteScan(relation, status);
@@ -38,34 +39,37 @@ const Status QU_Delete(const string & relation,
 		
 
 		// Get correct attribute type and start scan with correct type
+		int tmpInt;
+    	float tmpFloat;
+    	//convert to proper data type
+   		switch (type) {
+        	case INTEGER:
+            	tmpInt = atoi(attrValue);
+            	filter = (char*)&tmpInt;
+            	break;
+        case FLOAT:
+           		tmpFloat = atof(attrValue);
+            	filter = (char*)&tmpFloat;
+            	break;
+        case STRING:
+            	filter = attrValue;
+            	break;
+    	}
+		
 		if (type == INTEGER) {
 
-			int currValue;
-			char* currFilter;
-			currValue = atoi(attrValue);
-			currFilter = (char*) &currValue;
-
 			status = deleteScan.startScan(currAttr.attrOffset, 
-					currAttr.attrLen, type, currFilter, op);
-
+					currAttr.attrLen, type, filter, op);
 			
-
 		} else if (type == FLOAT) {
 
-			float currValue;
-			char* currFilter;
-			currValue = atof(attrValue);
-			currFilter = (char*) &currValue;
-
 			status = deleteScan.startScan(currAttr.attrOffset, 
-					currAttr.attrLen, type, currFilter, op);
+					currAttr.attrLen, type, filter, op);
 			
-
 		} else {
 
 			status = deleteScan.startScan(currAttr.attrOffset, 
 					currAttr.attrLen, type, attrValue, op);
-
 		}
 	}
 
